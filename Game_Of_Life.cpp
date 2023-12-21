@@ -174,6 +174,41 @@ void randomize(bool arr[][MAX_COLS], unsigned short curRows, unsigned short curC
     }
 }
 
+void deleteRow(bool arr[], unsigned short curCols)
+{
+    for (unsigned short i = 0; i < curCols; i++)
+        arr[i] = false;
+}
+
+void deleteCol(bool arr[][MAX_COLS], unsigned short colToDelete, unsigned short curRows)
+{
+    for (unsigned short i = 0; i < curRows; i++)
+        arr[i][colToDelete] = false;
+}
+
+void resize(bool arr[][MAX_COLS], unsigned short &curRows, unsigned short &curCols)
+{
+    std::cout << "Current size: " << curCols << "x" << curRows << std::endl;
+    std::cout << "Give new X and Y to resize the field: ";
+
+    int newCols = getInputBetween(1, MAX_COLS);
+    int newRows = getInputBetween(1, MAX_ROWS);
+
+    if (newCols < curCols) // delete the lost cells
+    {
+        for (unsigned short i = newCols; i < curCols; i++)
+            deleteCol(arr, i, curRows);
+    }
+
+    if (newRows < curRows)
+    {
+        for (unsigned short i = newRows; i < curRows; i++)
+            deleteRow(arr[i], curCols);
+    }
+    curRows = newRows;
+    curCols = newCols;
+}
+
 void playGame(bool cur[][MAX_COLS], bool old[][MAX_COLS])
 {
     initMatrixWithValue(cur, false);
@@ -195,6 +230,7 @@ void playGame(bool cur[][MAX_COLS], bool old[][MAX_COLS])
         case 1:
             break;
         case 2:
+            resize(cur, curRows, curCols);
             break;
         case 3:
             toggleCell(cur, curRows, curCols);
