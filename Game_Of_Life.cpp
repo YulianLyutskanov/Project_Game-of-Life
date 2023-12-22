@@ -89,7 +89,13 @@ short countDigits(int num)
 void printField(bool arr[][MAX_COLS], unsigned short curRows, unsigned short curCols)
 {
     std::cout << std::setw(countDigits(curRows) + 1) << " ";
-    std::cout << 1 << std::setw(curCols) << curCols << std::endl; // for first line with coords
+    std::cout << 1;
+
+    if (curCols != 1)
+        std::cout << std::setw(curCols - 2 + countDigits(curCols)) << curCols;
+    // for first line with coords , curCols - 2 is the number of spaces between 1 and curCols
+
+    std::cout << std::endl;
 
     for (unsigned short row = 0; row < curRows; row++)
     {
