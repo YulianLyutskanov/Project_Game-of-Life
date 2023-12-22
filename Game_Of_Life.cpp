@@ -15,17 +15,20 @@
 
 #include <cstdlib> // Required for srand and rand functions
 #include <ctime>   // Required for time function for srand
+#include <fstream> // for reading and writing in files
 #include <iomanip> // setw() for the fieldSize
 #include <iostream>
 
-const unsigned short MAX_ROWS = 24;
-const unsigned short MAX_COLS = 80;
+constexpr unsigned short MAX_ROWS = 24;
+constexpr unsigned short MAX_COLS = 80;
 
 const unsigned short STARTING_ROWS = 8;
 const unsigned short STARTING_COLS = 16;
 
 const unsigned short STARTING_MENU_OPTIONS = 3; // in case we want to add/remove functionalities
 const unsigned short INGAME_MENU_OPITONS = 7;
+
+const unsigned short MAX_FILENAME_LENGTH = 260;
 
 void validateChoice(int &choice, int from, int to)
 {
@@ -86,7 +89,21 @@ short countDigits(int num)
     return res;
 }
 
-void printField(bool arr[][MAX_COLS], unsigned short curRows, unsigned short curCols)
+unsigned myStrlen(const char *str)
+{
+    if (!str)
+        return 0;
+    unsigned res = 0;
+
+    while (*str)
+    {
+        res++;
+        str++;
+    }
+    return res;
+}
+
+void printField(const bool arr[][MAX_COLS], unsigned short curRows, unsigned short curCols)
 {
     std::cout << std::setw(countDigits(curRows) + 1) << " ";
     std::cout << 1;
@@ -215,13 +232,83 @@ void resize(bool arr[][MAX_COLS], unsigned short &curRows, unsigned short &curCo
     curCols = newCols;
 }
 
-void playGame(bool cur[][MAX_COLS], bool old[][MAX_COLS])
+bool isRowEmpty(const bool arr[][MAX_COLS], unsigned short row, unsigned short curCols)
 {
-    initMatrixWithValue(cur, false);
-    initMatrixWithValue(old, false);
+    for (unsigned short i = 0; i < curCols; i++)
+    {
+        if (arr[row][i] == true)
+            return false;
+    }
 
-    unsigned short curRows = STARTING_ROWS;
-    unsigned short curCols = STARTING_COLS;
+    return true;
+}
+
+bool isColEmpty(const bool arr[][MAX_COLS], unsigned short col, unsigned short curRows)
+{
+    for (unsigned short i = 0; i < curRows; i++)
+    {
+        if (arr[i][col] == true)
+            return false;
+    }
+
+    return true;
+}
+
+void findUnemptyRectangle(const bool arr[][MAX_COLS], unsigned short curRows, unsigned short curCols,
+                          unsigned short &startRow, unsigned short &endRow, unsigned short &startCol,
+                          unsigned short &endCol)
+{
+    while (isRowEmpty(arr, startRow, curCols))
+        startRow++;
+
+    while (isRowEmpty(arr, endRow, curCols))
+        endRow--;
+
+    while (isColEmpty(arr, startCol, curRows))
+        startCol++;
+
+    while (isColEmpty(arr, endCol, curRows))
+        endCol--;
+}
+
+void saveToFile(const bool arr[][MAX_COLS], unsigned short curRows, unsigned short curCols)
+{
+    std::cout << "The given field will be saved with the name you chose: ";
+    char name[MAX_FILENAME_LENGTH];
+    std::cin >> name;
+    std::cout << std::endl;
+
+    unsigned short startRow = 0;
+    unsigned short endRow = curRows - 1;
+    unsigned short startCol = 0;
+    unsigned short endCol = curCols - 1;
+
+    findUnemptyRectangle(arr, curRows, curCols, startRow, endRow, startCol, endCol);
+
+    std::ofstream ofs(name);
+
+    if (!ofs.is_open())
+    {
+        std::cout << "Saving failed!" << std::endl;
+        return;
+    }
+
+    for (unsigned short i = startRow; i <= endRow; i++)
+    {
+        for (unsigned short j = startCol; j <= endCol; j++)
+        {
+            ofs.put(arr[i][j] == true ? '@' : '-');
+        }
+        ofs.put('\n');
+    }
+
+    ofs.clear();
+    ofs.close();
+}
+
+void playGame(bool cur[][MAX_COLS], bool old[][MAX_COLS], unsigned short &curRows, unsigned short &curCols)
+{
+
     bool inGame = true;
 
     while (inGame)
@@ -248,6 +335,7 @@ void playGame(bool cur[][MAX_COLS], bool old[][MAX_COLS])
             randomize(cur, curRows, curCols);
             break;
         case 6:
+            saveToFile(cur, curRows, curCols);
             break;
         case 7:
             std::cout << std::endl;
@@ -257,6 +345,62 @@ void playGame(bool cur[][MAX_COLS], bool old[][MAX_COLS])
             break;
         }
     }
+}
+
+bool loadFile(bool cur[][MAX_COLS], unsigned short &curRows, unsigned short &curCols)
+{
+    char fileName[MAX_FILENAME_LENGTH];
+    std::cout << "Write the name of the file which you want to be loaded: ";
+    std::cin >> fileName;
+    std::cout << std::endl;
+    std::ifstream ifs(fileName);
+
+    if (!ifs.is_open())
+    {
+        std::cout << "Loading failed!" << std::endl;
+        return false;
+    }
+
+    int start = ifs.tellg(); // to remember start of the stream
+
+    char firstLine[MAX_COLS];
+    ifs.getline(firstLine, MAX_COLS);
+    curCols = myStrlen(firstLine);
+
+    ifs.seekg(start); // to go back to start
+
+    char ch;
+    unsigned short x = 0;
+    unsigned short y = 0;
+
+    while (ifs >> ch)
+    {
+        if (ch == '-')
+        {
+            cur[y][x] = false;
+        }
+        else if (ch == '@')
+        {
+            cur[y][x] = true;
+        }
+        else
+        {
+            std::cout << "Loading failed!" << std::endl;
+            return false;
+        }
+
+        x++;
+        if (x == curCols)
+        {                 // if we read the next line
+            x %= curCols; // set the x to 0 and update the y which is the rows
+            y++;
+        }
+    }
+    ifs.clear();
+    ifs.close();
+    curRows = y;
+
+    return true;
 }
 
 int main()
@@ -270,14 +414,21 @@ int main()
             return 0;
 
         bool curField[MAX_ROWS][MAX_COLS]; // the cells are "alive"(true) or "dead"(false)
-        bool oldFIeld[MAX_ROWS][MAX_COLS]; // needed for
+        bool oldField[MAX_ROWS][MAX_COLS]; // needed for
+
+        unsigned short curRows = STARTING_ROWS;
+        unsigned short curCols = STARTING_COLS;
+        initMatrixWithValue(curField, false);
+        initMatrixWithValue(oldField, false);
 
         if (input == 1)
-            playGame(curField, oldFIeld);
+            playGame(curField, oldField, curRows, curCols);
         else if (input == 2)
         {
-            // loadFile(curField, oldFIeld);
-            playGame(curField, oldFIeld);
+            bool isFileLoaded = loadFile(curField, curRows, curCols);
+            if (!isFileLoaded)
+                continue;
+            playGame(curField, oldField, curRows, curCols);
         }
     }
 }
