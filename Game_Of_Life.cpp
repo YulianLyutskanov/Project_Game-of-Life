@@ -18,6 +18,7 @@
 #include <fstream> // for reading and writing in files
 #include <iomanip> // setw() for the fieldSize
 #include <iostream>
+// #include <stdlib.h>
 
 constexpr unsigned short MAX_ROWS = 24 + 2; // +2 for easier expansion
 constexpr unsigned short MAX_COLS = 80 + 2;
@@ -120,6 +121,7 @@ unsigned myStrlen(const char *str)
 
 void printField(const bool arr[][MAX_COLS], unsigned short curRows, unsigned short curCols)
 {
+    // system("CLS");
     std::cout << std::setw(countDigits(curRows) + 1) << " ";
     std::cout << 1;
 
@@ -348,6 +350,7 @@ void saveToFile(const bool arr[][MAX_COLS], unsigned short curRows, unsigned sho
 
     ofs.clear();
     ofs.close();
+    std::cout << "File saved!" << std::endl;
 }
 
 bool isInRange(int a, int b, int rows, int cols)
@@ -415,28 +418,34 @@ void shiftDown(bool arr[][MAX_COLS], unsigned positions, unsigned short &curRows
     curRows++;
 }
 
-void expand(bool arr[][MAX_COLS], unsigned positions, unsigned short &curRows,
-            unsigned short &curCols) // just move all cells 1 down and 1 to right
+void expand(bool arr[][MAX_COLS], unsigned positions, unsigned short &curRows, unsigned short &curCols,
+            bool &shiftedDown, bool &shiftedRight) // just move all cells 1 down and 1 to right
 {
-    shiftRight(arr, positions, curRows, curCols);
-    shiftDown(arr, positions, curRows, curCols);
-
-    curRows++;
-    curCols++;
+    if (curRows < MAX_ROWS - 2) //-2 because of the expansion
+    {
+        shiftDown(arr, positions, curRows, curCols);
+        curRows++; // for lowest rows
+        shiftedDown = true;
+    }
+    if (curCols < MAX_COLS - 2)
+    {
+        shiftRight(arr, positions, curRows, curCols);
+        curCols++; // for rightest row
+        shiftedRight = true;
+    }
 }
 
 void stepForward(bool arr[][MAX_COLS], unsigned short &curRows, unsigned short &curCols)
 {
-    if (curRows < MAX_ROWS - 2 && curCols < MAX_COLS - 2) //-2 because of expansion on both sides
-    {
-        expand(arr, 1, curRows, curCols); // expand with 1 down and right
-    }
+    bool shiftedDown = false;
+    bool shiftedRight = false;
+    expand(arr, 1, curRows, curCols, shiftedDown, shiftedRight);
 
     bool helpField[MAX_ROWS][MAX_COLS]; // needed for independent check, also for better transfer of the new field
     initMatrixWithValue(helpField, false);
 
     for (unsigned short i = 0; i < curRows; i++) // fill the helpField
-    {
+    {                                            // +1 because we try to fill 1 row and col further down and rigth
         for (unsigned short j = 0; j < curCols; j++)
         {
             unsigned short aliveNeighbors = countAliveNeighbors(arr, i, j, curRows, curCols);
@@ -458,19 +467,19 @@ void stepForward(bool arr[][MAX_COLS], unsigned short &curRows, unsigned short &
     unsigned short endCol = curCols - 1;
 
     // check if the new rows/cols contain any live cells
-    if (isRowEmpty(helpField, startRow, curCols))
+    if (shiftedDown && isRowEmpty(helpField, startRow, curCols))
     {
         startRow++;
     }
-    if (isRowEmpty(helpField, endRow, curCols))
+    if (shiftedDown && isRowEmpty(helpField, endRow, curCols))
     {
         endRow--;
     }
-    if (isColEmpty(helpField, startCol, curRows))
+    if (shiftedRight && isColEmpty(helpField, startCol, curRows))
     {
         startCol++;
     }
-    if (isColEmpty(helpField, endCol, curRows))
+    if (shiftedRight && isColEmpty(helpField, endCol, curRows))
     {
         endCol--;
     }
