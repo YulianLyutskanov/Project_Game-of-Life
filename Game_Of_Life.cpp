@@ -26,7 +26,20 @@ const unsigned short STARTING_ROWS = 8;
 const unsigned short STARTING_COLS = 16;
 
 const unsigned short STARTING_MENU_OPTIONS = 3; // in case we want to add/remove functionalities
+
+const unsigned short NEW_GAME = 1;
+const unsigned short LOAD_FILE = 2;
+const unsigned short EXIT = 3;
+
 const unsigned short INGAME_MENU_OPITONS = 7;
+
+const unsigned short STEP_FORWARD = 1;
+const unsigned short RESIZE = 2;
+const unsigned short TOGGLE_CELL = 3;
+const unsigned short CLEAR = 4;
+const unsigned short RANDOMIZE = 5;
+const unsigned short SAVE_TO_FILE = 6;
+const unsigned short END = 7;
 
 const unsigned short MAX_FILENAME_LENGTH = 260;
 
@@ -92,7 +105,9 @@ short countDigits(int num)
 unsigned myStrlen(const char *str)
 {
     if (!str)
+    {
         return 0;
+    }
     unsigned res = 0;
 
     while (*str)
@@ -109,27 +124,39 @@ void printField(const bool arr[][MAX_COLS], unsigned short curRows, unsigned sho
     std::cout << 1;
 
     if (curCols != 1)
+    {
         std::cout << std::setw(curCols - 2 + countDigits(curCols)) << curCols;
-    // for first line with coords , curCols - 2 is the number of spaces between 1 and curCols
-
+        // for first line with coords , curCols - 2 is the number of spaces between 1 and curCols
+    }
     std::cout << std::endl;
 
     for (unsigned short row = 0; row < curRows; row++)
     {
         // for coords on the leftside
-        if (row == 0) // first row 1
+        if (row == 0)
+        { // first row 1
             std::cout << std::setw(countDigits(curRows)) << 1 << ' ';
-        else if (row == curRows - 1) // end row
+        }
+        else if (row == curRows - 1)
+        { // end row
             std::cout << curRows << ' ';
+        }
         else
+        {
+
             std::cout << " " << std::setw(countDigits(curRows) + 1); // mid rows
+        }
 
         for (unsigned short col = 0; col < curCols; col++)
         {
             if (arr[row][col])
+            {
                 std::cout << '@'; // if alive
+            }
             else
+            {
                 std::cout << '-'; // if dead
+            }
         }
         std::cout << std::endl; // start printing new row
     }
@@ -139,9 +166,9 @@ void printField(const bool arr[][MAX_COLS], unsigned short curRows, unsigned sho
 
 void initMatrixWithValue(bool arr[][MAX_COLS], bool value)
 {
-    for (short i = 0; i < MAX_ROWS; i++)
+    for (unsigned short i = 0; i < MAX_ROWS; i++)
     {
-        for (short j = 0; j < MAX_COLS; j++)
+        for (unsigned short j = 0; j < MAX_COLS; j++)
         {
             arr[i][j] = value;
         }
@@ -150,10 +177,7 @@ void initMatrixWithValue(bool arr[][MAX_COLS], bool value)
 
 bool isCellValid(int x, int y, unsigned short curRows, unsigned short curCols)
 {
-    if (x >= 1 && x <= curCols && y >= 1 && y <= curRows)
-        return true;
-
-    return false;
+    return x >= 1 && x <= curCols && y >= 1 && y <= curRows;
 }
 
 void toggleCell(bool arr[][MAX_COLS], unsigned short curRows, unsigned short curCols)
@@ -178,15 +202,15 @@ void randomize(bool arr[][MAX_COLS], unsigned short curRows, unsigned short curC
     std::cin >> chance;
     validateChoice(chance, 0, INT_MAX);
 
-    if (!chance)
+    if (!chance) // if chance is 0 set all cells to false
     {
         initMatrixWithValue(arr, false);
         return;
     }
 
-    srand(time(NULL));
+    srand(time(NULL)); // bind the random function with the time seed
 
-    for (short row = 0; row < curRows; row++)
+    for (short row = 0; row < curRows; row++) // randomize the field
     {
         for (short col = 0; col < curCols; col++)
         {
@@ -200,13 +224,17 @@ void randomize(bool arr[][MAX_COLS], unsigned short curRows, unsigned short curC
 void deleteRow(bool arr[], unsigned short curCols)
 {
     for (unsigned short i = 0; i < curCols; i++)
+    {
         arr[i] = false;
+    }
 }
 
 void deleteCol(bool arr[][MAX_COLS], unsigned short colToDelete, unsigned short curRows)
 {
     for (unsigned short i = 0; i < curRows; i++)
+    {
         arr[i][colToDelete] = false;
+    }
 }
 
 void resize(bool arr[][MAX_COLS], unsigned short &curRows, unsigned short &curCols)
@@ -220,13 +248,17 @@ void resize(bool arr[][MAX_COLS], unsigned short &curRows, unsigned short &curCo
     if (newCols < curCols) // delete the lost cells
     {
         for (unsigned short i = newCols; i < curCols; i++)
+        {
             deleteCol(arr, i, curRows);
+        }
     }
 
     if (newRows < curRows)
     {
         for (unsigned short i = newRows; i < curRows; i++)
+        {
             deleteRow(arr[i], curCols);
+        }
     }
     curRows = newRows;
     curCols = newCols;
@@ -236,8 +268,10 @@ bool isRowEmpty(const bool arr[][MAX_COLS], unsigned short row, unsigned short c
 {
     for (unsigned short i = 0; i < curCols; i++)
     {
-        if (arr[row][i] == true)
+        if (arr[row][i] == true) // if alive cell found return not Empty
+        {
             return false;
+        }
     }
 
     return true;
@@ -247,8 +281,10 @@ bool isColEmpty(const bool arr[][MAX_COLS], unsigned short col, unsigned short c
 {
     for (unsigned short i = 0; i < curRows; i++)
     {
-        if (arr[i][col] == true)
+        if (arr[i][col] == true) // if alive cell found return not Empty
+        {
             return false;
+        }
     }
 
     return true;
@@ -259,16 +295,24 @@ void findUnemptyRectangle(const bool arr[][MAX_COLS], unsigned short curRows, un
                           unsigned short &endCol)
 {
     while (isRowEmpty(arr, startRow, curCols) && startRow < curRows)
+    {
         startRow++;
+    }
 
     while (isRowEmpty(arr, endRow, curCols) && endRow > 0)
+    {
         endRow--;
+    }
 
     while (isColEmpty(arr, startCol, curRows) && startCol < curCols)
+    {
         startCol++;
+    }
 
     while (isColEmpty(arr, endCol, curRows) && endCol > 0)
+    {
         endCol--;
+    }
 }
 
 void saveToFile(const bool arr[][MAX_COLS], unsigned short curRows, unsigned short curCols)
@@ -324,11 +368,16 @@ unsigned short countAliveNeighbors(const bool arr[][MAX_COLS], int row, int col,
 
            (isInRange(row + 1, col - 1, curRows, curCols) && arr[row + 1][col - 1]) +
            (isInRange(row + 1, col, curRows, curCols) && arr[row + 1][col]) +
-           (isInRange(row + 1, col + 1, curRows, curCols) && arr[row + 1][col + 1]); // lowerLine.
+           (isInRange(row + 1, col + 1, curRows, curCols) && arr[row + 1][col + 1]); // lowerLine
 }
 
 void shiftRight(bool arr[][MAX_COLS], unsigned positions, unsigned short &curRows, unsigned short &curCols)
 {
+    if (curCols - 1 + positions > MAX_COLS)
+    {
+        return; // if there isn't enough space to shift
+    }
+
     for (int col = curCols - 1 + positions; col >= positions; col--) // shift right
     {
         for (unsigned short row = 0; row < curRows; row++)
@@ -337,7 +386,7 @@ void shiftRight(bool arr[][MAX_COLS], unsigned positions, unsigned short &curRow
         }
     }
 
-    for (int i = 0; i < positions; i++) // set cols at the first positions to false
+    for (int i = 0; i < positions; i++) // set the starting cols to false
     {
         deleteCol(arr, i, curRows);
     }
@@ -346,6 +395,11 @@ void shiftRight(bool arr[][MAX_COLS], unsigned positions, unsigned short &curRow
 
 void shiftDown(bool arr[][MAX_COLS], unsigned positions, unsigned short &curRows, unsigned short &curCols)
 {
+    if (curRows - 1 + positions > MAX_ROWS)
+    {
+        return; // if there isn't enough space to shift
+    }
+
     for (int row = curRows - 1 + positions; row >= positions; row--) // shift down
     {
         for (unsigned short col = 0; col < curCols; col++)
@@ -354,7 +408,7 @@ void shiftDown(bool arr[][MAX_COLS], unsigned positions, unsigned short &curRows
         }
     }
 
-    for (unsigned short i = 0; i < positions; i++) // set rows at the first positions to false
+    for (unsigned short i = 0; i < positions; i++) // set the starting rows to false
     {
         deleteRow(arr[i], curCols);
     }
@@ -367,14 +421,16 @@ void expand(bool arr[][MAX_COLS], unsigned positions, unsigned short &curRows,
     shiftRight(arr, positions, curRows, curCols);
     shiftDown(arr, positions, curRows, curCols);
 
-    curRows++; // to include the last empty row
-    curCols++; // to include the last empty col
+    curRows++;
+    curCols++;
 }
 
 void stepForward(bool arr[][MAX_COLS], unsigned short &curRows, unsigned short &curCols)
 {
     if (curRows < MAX_ROWS - 2 && curCols < MAX_COLS - 2) //-2 because of expansion on both sides
-        expand(arr, 1, curRows, curCols);                 // expand with 1 down and right
+    {
+        expand(arr, 1, curRows, curCols); // expand with 1 down and right
+    }
 
     bool helpField[MAX_ROWS][MAX_COLS]; // needed for independent check, also for better transfer of the new field
     initMatrixWithValue(helpField, false);
@@ -385,11 +441,11 @@ void stepForward(bool arr[][MAX_COLS], unsigned short &curRows, unsigned short &
         {
             unsigned short aliveNeighbors = countAliveNeighbors(arr, i, j, curRows, curCols);
 
-            if (arr[i][j])
+            if (arr[i][j]) // if cell is alive
             {
                 helpField[i][j] = (aliveNeighbors == 2 || aliveNeighbors == 3);
             }
-            else
+            else // if cell is dead
             {
                 helpField[i][j] = (aliveNeighbors == 3);
             }
@@ -458,27 +514,27 @@ void playGame(bool cur[][MAX_COLS], unsigned short &curRows, unsigned short &cur
 
         switch (choice)
         {
-        case 1:
+        case STEP_FORWARD:
             stepForward(cur, curRows, curCols);
             break;
-        case 2:
+        case RESIZE:
             resize(cur, curRows, curCols);
             break;
-        case 3:
+        case TOGGLE_CELL:
             toggleCell(cur, curRows, curCols);
             break;
-        case 4: // clear
+        case CLEAR: // clear
             initMatrixWithValue(cur, false);
             break;
-        case 5:
+        case RANDOMIZE:
             randomize(cur, curRows, curCols);
             break;
-        case 6:
+        case SAVE_TO_FILE:
             saveToFile(cur, curRows, curCols);
             break;
-        case 7:
+        case END:
             std::cout << std::endl;
-            inGame = false; // Exit
+            inGame = false; // End
             break;
         default:
             break;
@@ -549,8 +605,10 @@ int main()
         displayStartingMenu();
         unsigned short input = getInputBetween(1, STARTING_MENU_OPTIONS); // from first - last
 
-        if (input == 3) // if player choses Exit
+        if (input == EXIT)
+        {
             return 0;
+        }
 
         bool curField[MAX_ROWS][MAX_COLS]; // the cells are "alive"(true) or "dead"(false)
 
@@ -558,13 +616,17 @@ int main()
         unsigned short curCols = STARTING_COLS;
         initMatrixWithValue(curField, false);
 
-        if (input == 1)
+        if (input == NEW_GAME)
+        {
             playGame(curField, curRows, curCols);
-        else if (input == 2)
+        }
+        else if (input == LOAD_FILE)
         {
             bool isFileLoaded = loadFile(curField, curRows, curCols);
             if (!isFileLoaded)
+            {
                 continue;
+            }
             playGame(curField, curRows, curCols);
         }
     }
