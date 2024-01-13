@@ -122,6 +122,10 @@ unsigned myStrlen(const char *str)
 void printField(const bool arr[][MAX_COLS], unsigned short curRows, unsigned short curCols)
 {
     // system("CLS");
+
+    if (!curCols || !curRows)
+        return;
+
     std::cout << std::setw(countDigits(curRows) + 1) << " ";
     std::cout << 1;
 
@@ -321,7 +325,8 @@ void saveToFile(const bool arr[][MAX_COLS], unsigned short curRows, unsigned sho
 {
     std::cout << "The given field will be saved with the name you chose: ";
     char name[MAX_FILENAME_LENGTH];
-    std::cin >> name;
+    std::cin.ignore();
+    std::cin.getline(name, MAX_FILENAME_LENGTH);
     std::cout << std::endl;
 
     unsigned short startRow = 0;
@@ -555,7 +560,8 @@ bool loadFile(bool cur[][MAX_COLS], unsigned short &curRows, unsigned short &cur
 {
     char fileName[MAX_FILENAME_LENGTH];
     std::cout << "Write the name of the file which you want to be loaded: ";
-    std::cin >> fileName;
+    std::cin.ignore();
+    std::cin.getline(fileName, MAX_FILENAME_LENGTH);
     std::cout << std::endl;
     std::ifstream ifs(fileName);
 
