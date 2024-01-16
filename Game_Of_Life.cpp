@@ -323,11 +323,6 @@ void findUnemptyRectangle(const bool arr[][MAX_COLS], unsigned short curRows, un
 
 void saveToFile(const bool arr[][MAX_COLS], unsigned short curRows, unsigned short curCols)
 {
-    std::cout << "The given field will be saved with the name you chose: ";
-    char name[MAX_FILENAME_LENGTH];
-    std::cin.ignore();
-    std::cin.getline(name, MAX_FILENAME_LENGTH);
-    std::cout << std::endl;
 
     unsigned short startRow = 0;
     unsigned short endRow = curRows - 1;
@@ -335,6 +330,17 @@ void saveToFile(const bool arr[][MAX_COLS], unsigned short curRows, unsigned sho
     unsigned short endCol = curCols - 1;
 
     findUnemptyRectangle(arr, curRows, curCols, startRow, endRow, startCol, endCol);
+    if (startRow >= endRow || startCol >= endCol) // there isn't such a rectangle
+    {
+        std::cout << "Cannot save an empty field! " << std::endl;
+        return;
+    }
+
+    std::cout << "The given field will be saved with the name you chose: ";
+    char name[MAX_FILENAME_LENGTH];
+    std::cin.ignore();
+    std::cin.getline(name, MAX_FILENAME_LENGTH);
+    std::cout << std::endl;
 
     std::ofstream ofs(name);
 
@@ -450,7 +456,7 @@ void stepForward(bool arr[][MAX_COLS], unsigned short &curRows, unsigned short &
     initMatrixWithValue(helpField, false);
 
     for (unsigned short i = 0; i < curRows; i++) // fill the helpField
-    {                                            // +1 because we try to fill 1 row and col further down and rigth
+    {
         for (unsigned short j = 0; j < curCols; j++)
         {
             unsigned short aliveNeighbors = countAliveNeighbors(arr, i, j, curRows, curCols);
@@ -489,7 +495,8 @@ void stepForward(bool arr[][MAX_COLS], unsigned short &curRows, unsigned short &
         endCol--;
     }
 
-    // initMatrixWithValue(arr, false); //clear before filling
+    initMatrixWithValue(arr, false); // clear before filling
+    // here we can delete only the last two rows and cols, but left like that for more code readability
 
     for (unsigned short row = startRow, i = 0; row <= endRow; row++, i++) // Update the matrix with the new values
     {
