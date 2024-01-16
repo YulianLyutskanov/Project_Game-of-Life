@@ -1,6 +1,7 @@
 # Project_Game-of-Life
 Course project Game of Life, created by me for my UP Practicum course @ FMI, Sofia University.
-Overview
+
+# Overview
 This C++ console application implements Conway's Game of Life, a classic cellular automaton devised by mathematician John Conway. 
 The Game of Life is a zero-player game, meaning its evolution is determined by its initial state, with no further input from humans. 
 The game follows simple rules, making it an interesting and visually appealing simulation.
