@@ -1,5 +1,5 @@
 # Project_Game-of-Life
-Course project Game of Life, created by me for my UP Practicum course @ FMI, Sofia University.
+Course project Game of Life, created by me for my Introduction to Programming - Practicum course @ FMI, Sofia University.
 
 ## Overview
 This C++ console application implements Conway's Game of Life, a classic cellular automaton devised by mathematician John Conway. 
