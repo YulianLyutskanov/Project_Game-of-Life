@@ -17,4 +17,4 @@ The game follows simple rules, making it an interesting and visually appealing s
 
 ## Example
 
-https://upload.wikimedia.org/wikipedia/commons/e/e5/Gospers_glider_gun.gif
+![Glider Progression](https://upload.wikimedia.org/wikipedia/commons/f/f2/Game_of_life_animated_glider.gif)
