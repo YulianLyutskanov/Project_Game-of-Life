@@ -14,3 +14,7 @@ The game follows simple rules, making it an interesting and visually appealing s
  - Random Initialization: The initial state of the grid can be randomly generated, providing variety and unpredictability in each simulation.
 
  - Interactive Mode: Users have the option to interactively toggle cell states, creating their own patterns during runtime.
+
+## Example
+
+https://upload.wikimedia.org/wikipedia/commons/e/e5/Gospers_glider_gun.gif
